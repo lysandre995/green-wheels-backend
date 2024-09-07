@@ -1,6 +1,6 @@
 import { inject, singleton } from "tsyringe";
 import UserDto from "green-wheels-core/src/user/user.dto";
-import { UserTable } from "./user.table";
+import { UserTable } from "./user.table.js";
 
 @singleton()
 export class UserService {

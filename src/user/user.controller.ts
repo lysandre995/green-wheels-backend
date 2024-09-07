@@ -1,15 +1,16 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { injectable, inject } from "tsyringe";
-import { UserService } from "./user.service";
+import { UserService } from "./user.service.js";
 import {
     CreateUserBody,
     DeleteUserParams,
     GetUserParams,
     GetUsersParams
 } from "./user.params";
+import { Controller } from "../controller.js";
 
 @injectable()
-export class UserController {
+export class UserController implements Controller {
     public constructor(@inject(UserService) private userService: UserService) {}
 
     public registerRoutes(app: FastifyInstance): void {
@@ -32,7 +33,7 @@ export class UserController {
     }
 
     private getUserById(request: FastifyRequest<{ Params: GetUserParams }>, reply: FastifyReply): void {
-        const user = this.userService.getUserById(request.params.id);
+        const user = this.userService.getUserById(Number(request.params.id));
         reply.send(user);
     }
 
@@ -45,7 +46,7 @@ export class UserController {
     }
 
     private async deleteUser(request: FastifyRequest<{ Params: DeleteUserParams }>, reply: FastifyReply): Promise<void> {
-        await this.userService.deleteUser(request.params.id);
+        await this.userService.deleteUser(Number(request.params.id));
         reply.send({ success: true });
     }
 }

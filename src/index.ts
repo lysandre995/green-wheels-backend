@@ -1,23 +1,90 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import fastify from "fastify";
-import { UserController } from "./user/user.controller";
-import { DatabaseService } from "./database/database.service";
+import fastify, { FastifyReply, FastifyRequest } from "fastify";
+import cors from "@fastify/cors";
+import { UserController } from "./user/user.controller.js";
+import { DatabaseService } from "./database/database.service.js";
 import { Initializable } from "./common/initializable";
-import { UserTable } from "./user/user.table";
+import { UserTable } from "./user/user.table.js";
+import { CommunityController } from "./community/community.controller.js";
+import { Controller } from "./controller.js";
+import { CommunityTable } from "./community/community.table.js";
+import { AuthenticationService } from "./authentication/authentication.service.js";
+import { AuthenticationController } from "./authentication/authentication.controller.js";
 
 const app = fastify();
 
-const controllers = [UserController];
-controllers.forEach(Controller => {
-    const controllerInstance = container.resolve(Controller);
-    controllerInstance.registerRoutes(app);
+app.register(cors, {
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type InitializableConstructor<T extends Initializable = Initializable> = new (...args: any[]) => T;
-const initializables: InitializableConstructor[] = [DatabaseService, UserTable];
-initializables.forEach(async Service => {
-    const serviceInstance = container.resolve(Service);
-    await serviceInstance.initialize();
+app.addHook("preHandler", (request, reply, done) => {
+    if (typeof request.body === "string") {
+        try {
+            request.body = JSON.parse(request.body);
+        } catch (e) {
+        reply.status(400).send({ error: "Invalid JSON" });
+        return;
+        }
+    }
+
+    done();
 });
+
+type ControllerConstructor<T extends Controller = Controller> = new (
+    ...args: any[]
+  ) => T;
+const controllers: ControllerConstructor[] = [UserController, CommunityController, AuthenticationController];
+controllers.forEach((Controller) => {
+    try {
+        const controllerInstance = container.resolve(Controller);
+        controllerInstance.registerRoutes(app);
+    } catch (e) {
+        console.error(`Failed to register controller ${Controller.name}`, e);
+    }
+});
+
+type InitializableConstructor<T extends Initializable = Initializable> = new (
+  ...args: any[]
+) => T;
+const initializables: InitializableConstructor[] = [DatabaseService, UserTable, CommunityTable, AuthenticationService];
+
+(async () => {
+    try {
+        await Promise.all(
+            initializables.map((Service) => {
+                const serviceInstance = container.resolve(Service);
+                return serviceInstance.initialize();
+            })
+        );
+
+        app.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
+            const authHeader = request.headers['authorization'];
+            if (authHeader === undefined) {
+                reply.status(401).send({ error: "No token provided" });
+                return;
+            }
+
+            const [scheme, token] = authHeader.split(' ');
+            if (scheme !== "Berare" || token === undefined || token === null) {
+                reply.status(401).send({ error: "Invalid token format" });
+                return;
+            }
+
+            try {
+                container.resolve(AuthenticationService).validateToken(authHeader as string);
+                reply.send({valid: true});
+            } catch (e) {
+                reply.status(401).send({error: e, valid: false});
+            }
+        });
+
+        const address = await app.listen({ port: 3000 });
+        console.log(`Server listening at ${address}`);
+    } catch (e) {
+        console.error("Error during server startup", e);
+        process.exit(1);
+    }
+})();

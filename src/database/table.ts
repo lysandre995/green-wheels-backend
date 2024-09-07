@@ -1,6 +1,6 @@
 import { inject } from "tsyringe";
-import { DatabaseService } from "./database.service";
-import { Initializable } from "../common/initializable";
+import { DatabaseService } from "./database.service.js";
+import { Initializable } from "../common/initializable.js";
 
 export abstract class Table<T> implements Initializable {
     protected table: T[] | undefined;
@@ -35,7 +35,7 @@ export abstract class Table<T> implements Initializable {
     }
 
     public async insert(object: T): Promise<number> {
-        if (this.table !== undefined && this.table.includes(object)) {
+        if (this.table !== undefined) {
             let id = 0;
             if (this.table.length > 0) {
                 const maxIdItem = (this.table as { id: number }[]).reduce(

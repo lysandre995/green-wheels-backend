@@ -1,54 +1,33 @@
 {
   "name": "project",
   "version": "1.0.0",
-  "description": "Program Example",
+  "description": "Green Wheels Backend",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "start": "node dist/index.js",
-    "debug": "ts-node src/index.ts",
+    "debug": "node src/index.ts",
     "build": "tsc",
     "watch": "tsc -w",
-    "lint": "eslint . & prettier . --check",
-    "lint-fix": "eslint . --fix & prettier . --write",
-    "test": "jest --clearMocks --resetMocks --runInBand --coverage --detectOpenHandles --verbose",
-    "prepare": "husky"
+    "test": "echo test"
   },
   "author": "Alessandro Alfano",
   "license": "MIT",
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "tsc --noEmit",
-      "eslint --fix",
-      "prettier --write",
-      "npm run test"
-    ],
-    "*.html": [
-      "eslint",
-      "prettier --write"
-    ],
-    "*.css": "prettier --write"
-  },
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
-    "@types/jest": "^29.5.12",
-    "@typescript-eslint/eslint-plugin": "^8.2.0",
-    "@typescript-eslint/parser": "^8.2.0",
-    "babel-plugin-transform-typescript-metadata": "^0.3.2",
-    "eslint": "^9.9.0",
-    "eslint-config-prettier": "^9.1.0",
-    "globals": "^15.9.0",
-    "husky": "^9.1.5",
-    "jest": "29.7.0",
-    "prettier": "3.3.3",
-    "ts-jest": "^29.2.4",
-    "ts-node": "^10.9.2",
-    "typescript": "5.5.4",
-    "typescript-eslint": "^8.2.0"
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^22.5.4",
+    "tsc-alias": "1.8.10",
+    "typescript": "5.5.4"
   },
   "dependencies": {
-    "fastify": "^4.28.1",
-    "lowdb": "^7.0.1",
-    "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.8.0"
+    "@fastify/cors": "^9.0.1",
+    "bcrypt": "^5.1.1",
+    "fastify": "4.28.1",
+    "green-wheels-core": "1.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "lowdb": "7.0.1",
+    "reflect-metadata": "0.2.2",
+    "tsyringe": "4.8.0"
   }
 }
