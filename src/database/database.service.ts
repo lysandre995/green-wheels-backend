@@ -34,6 +34,7 @@ export class DatabaseService implements Initializable {
 
     public async createTable<T>(tableName: string): Promise<T[]> {
         if (this.db.data[tableName] === undefined) {
+            await this.db.read();
             this.db.data[tableName] = [];
             await this.db.write();
             return this.db.data[tableName] as T[];

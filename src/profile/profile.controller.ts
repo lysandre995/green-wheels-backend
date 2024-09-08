@@ -17,7 +17,8 @@ export class ProfileController implements Controller {
 
     private getProfile(request: FastifyRequest<{Params: {id: number}}>, reply: FastifyReply): void {
         const userId = request.params.id;
-        reply.code(200).send(this.profileService.getProfile(userId));
+        const profile = this.profileService.getProfile(userId)
+        reply.code(200).send(profile);
     }
 
     private async addProfile(request: FastifyRequest<{ Body: { profile: ProfileDto } }>, reply: FastifyReply): Promise<void> {

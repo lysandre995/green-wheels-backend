@@ -19,14 +19,11 @@ public constructor(@inject(ProfileTable) private readonly profileTable: ProfileT
     }
 
     public async addProfile(profile: ProfileDto): Promise<void> {
-        if (profile.id !== undefined) {
-            if (this.profileTable.findById(profile.id as number) === undefined) {
-                await this.profileTable.insert(profile);
-                return;
-            }
-            throw new UserIdAlreadyPresentError("Profile with this id already exists");
+        if (this.profileTable.findById(Number(profile.id) as number) === undefined) {
+            await this.profileTable.insert(profile);
+            return;
         }
-        throw new UndefinedIdError("A profile must have an id defined");
+        throw new UserIdAlreadyPresentError("Profile with this id already exists");
     }
 
     public async updateProfile(profile: ProfileDto): Promise<void> {
