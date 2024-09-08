@@ -44,7 +44,7 @@ export class AuthenticationService implements Initializable {
             throw new InvalidPasswordError("The given password is invalid");
         }
 
-        return jwt.sign({ username }, AuthenticationService.SECRET_KEY, { expiresIn: AuthenticationService.TOKEN_EXPIRY});
+        return jwt.sign({ username, id: user.id }, AuthenticationService.SECRET_KEY, { expiresIn: AuthenticationService.TOKEN_EXPIRY});
     }
 
     public validateToken(token: string): string | jwt.JwtPayload {

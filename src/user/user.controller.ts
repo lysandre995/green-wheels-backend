@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { injectable, inject } from "tsyringe";
+import { inject, singleton } from "tsyringe";
 import { UserService } from "./user.service.js";
 import {
     CreateUserBody,
@@ -9,9 +9,9 @@ import {
 } from "./user.params";
 import { Controller } from "../controller.js";
 
-@injectable()
+@singleton()
 export class UserController implements Controller {
-    public constructor(@inject(UserService) private userService: UserService) {}
+    public constructor(@inject(UserService) private readonly userService: UserService) {}
 
     public registerRoutes(app: FastifyInstance): void {
         app.get("/users", this.getUsers.bind(this));

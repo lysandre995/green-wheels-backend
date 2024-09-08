@@ -11,6 +11,8 @@ import { Controller } from "./controller.js";
 import { CommunityTable } from "./community/community.table.js";
 import { AuthenticationService } from "./authentication/authentication.service.js";
 import { AuthenticationController } from "./authentication/authentication.controller.js";
+import { ProfileService } from "./profile/profile.service.js";
+import { ProfileController } from "./profile/profile.controller.js";
 
 const app = fastify();
 
@@ -36,20 +38,12 @@ app.addHook("preHandler", (request, reply, done) => {
 type ControllerConstructor<T extends Controller = Controller> = new (
     ...args: any[]
   ) => T;
-const controllers: ControllerConstructor[] = [UserController, CommunityController, AuthenticationController];
-controllers.forEach((Controller) => {
-    try {
-        const controllerInstance = container.resolve(Controller);
-        controllerInstance.registerRoutes(app);
-    } catch (e) {
-        console.error(`Failed to register controller ${Controller.name}`, e);
-    }
-});
+const controllers: ControllerConstructor[] = [UserController, CommunityController, AuthenticationController, ProfileController];
 
 type InitializableConstructor<T extends Initializable = Initializable> = new (
   ...args: any[]
 ) => T;
-const initializables: InitializableConstructor[] = [DatabaseService, UserTable, CommunityTable, AuthenticationService];
+const initializables: InitializableConstructor[] = [DatabaseService, UserTable, CommunityTable, AuthenticationService, ProfileService];
 
 (async () => {
     try {
@@ -78,6 +72,15 @@ const initializables: InitializableConstructor[] = [DatabaseService, UserTable, 
                 reply.send({valid: true});
             } catch (e) {
                 reply.status(401).send({error: e, valid: false});
+            }
+        });
+        
+        controllers.forEach((Controller) => {
+            try {
+                const controllerInstance = container.resolve(Controller);
+                controllerInstance.registerRoutes(app);
+            } catch (e) {
+                console.error(`Failed to register controller ${Controller.name}`, e);
             }
         });
 

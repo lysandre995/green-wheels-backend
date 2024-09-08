@@ -56,6 +56,19 @@ export abstract class Table<T> implements Initializable {
         }
         throw new Error(`Table not initialized, missing ${this.tableName} table`);
     }
+    
+    public async update(id: number, updatedObject: Partial<T>): Promise<void> {
+        if (this.table !== undefined) {
+            const index = this.table.findIndex(t => (t as { id: number }).id === id);
+            if (index !== -1) {
+                this.table[index] = { ...this.table[index], ...updatedObject };
+                await this.dbService.updateDb();
+                return;
+            }
+            throw new Error(`Item with id ${id} not found in ${this.tableName} table`);
+        }
+        throw new Error(`Table not initialized, missing ${this.tableName} table`);
+    }
 
     public async delete(id: number): Promise<void> {
         if (this.table !== undefined) {
