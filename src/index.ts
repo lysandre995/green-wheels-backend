@@ -13,12 +13,13 @@ import { AuthenticationService } from "./authentication/authentication.service.j
 import { AuthenticationController } from "./authentication/authentication.controller.js";
 import { ProfileService } from "./profile/profile.service.js";
 import { ProfileController } from "./profile/profile.controller.js";
+import { ProfileTable } from "./profile/profile.table.js";
 
 const app = fastify();
 
 app.register(cors, {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 });
 
@@ -43,7 +44,7 @@ const controllers: ControllerConstructor[] = [UserController, CommunityControlle
 type InitializableConstructor<T extends Initializable = Initializable> = new (
   ...args: any[]
 ) => T;
-const initializables: InitializableConstructor[] = [DatabaseService, UserTable, CommunityTable, AuthenticationService, ProfileService];
+const initializables: InitializableConstructor[] = [DatabaseService, UserTable, CommunityTable, ProfileTable, AuthenticationService, ProfileService];
 
 (async () => {
     try {
@@ -62,14 +63,13 @@ const initializables: InitializableConstructor[] = [DatabaseService, UserTable, 
             }
 
             const [scheme, token] = authHeader.split(' ');
-            if (scheme !== "Berare" || token === undefined || token === null) {
+            if (scheme !== "Bearer" || token === undefined || token === null) {
                 reply.status(401).send({ error: "Invalid token format" });
                 return;
             }
 
             try {
-                container.resolve(AuthenticationService).validateToken(authHeader as string);
-                reply.send({valid: true});
+                container.resolve(AuthenticationService).validateToken(token);
             } catch (e) {
                 reply.status(401).send({error: e, valid: false});
             }
