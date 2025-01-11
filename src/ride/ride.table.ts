@@ -1,12 +1,12 @@
 import { inject, singleton } from "tsyringe";
 import { Table } from "../database/table.js";
-import ProfileDto from "green-wheels-core/src/profile/profile.dto";
+import RideDto from "green-wheels-core/src/ride/ride.dto";
 import { DatabaseService } from "../database/database.service.js";
 import { TableNames } from "../database/table-names.js";
 
 @singleton()
-export class ProfileTable extends Table<ProfileDto> {
+export class RideTable extends Table<RideDto> {
     public constructor(@inject(DatabaseService) databaseService: DatabaseService) {
-        super(databaseService, TableNames.PROFILE_TABLE_NAME);
+        super(databaseService, TableNames.RIDE_TABLE_NAME);
     }
 }

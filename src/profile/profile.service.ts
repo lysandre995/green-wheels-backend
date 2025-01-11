@@ -1,29 +1,27 @@
 import ProfileDto from "green-wheels-core/src/profile/profile.dto";
 import { inject, singleton } from "tsyringe";
 import { ProfileTable } from "./profile.table.js";
-import { UserIdAlreadyPresentError } from "./user-id-already-present.error.js";
 import { UndefinedIdError } from "./undefined-id.error.js";
 import { UserIdNotPresentError } from "./user-id-not-present.error.js";
 import { Initializable } from "../common/initializable.js";
 
 @singleton()
 export class ProfileService implements Initializable {
-public constructor(@inject(ProfileTable) private readonly profileTable: ProfileTable) {}
+    public constructor(@inject(ProfileTable) private readonly profileTable: ProfileTable) {}
 
     public async initialize(): Promise<void> {
         return;
     }
 
     public getProfile(userId: number): ProfileDto | undefined {
-        return this.profileTable.findById(userId);
+        return this.profileTable
+            .findAll()
+            .filter(p => p.userId === userId)
+            .at(0);
     }
 
-    public async addProfile(profile: ProfileDto): Promise<void> {
-        if (this.profileTable.findById(Number(profile.id) as number) === undefined) {
-            await this.profileTable.insert(profile);
-            return;
-        }
-        throw new UserIdAlreadyPresentError("Profile with this id already exists");
+    public async addProfile(profile: ProfileDto): Promise<number> {
+        return await this.profileTable.insert(profile);
     }
 
     public async updateProfile(profile: ProfileDto): Promise<void> {

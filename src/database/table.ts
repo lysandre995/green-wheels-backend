@@ -35,6 +35,7 @@ export abstract class Table<T> implements Initializable {
     }
 
     public async insert(object: T): Promise<number> {
+        this.table = this.dbService.refreshTableReference(this.tableName);
         if (this.table !== undefined) {
             let id = 0;
             if (this.table.length > 0) {
@@ -56,8 +57,9 @@ export abstract class Table<T> implements Initializable {
         }
         throw new Error(`Table not initialized, missing ${this.tableName} table`);
     }
-    
+
     public async update(id: number, updatedObject: Partial<T>): Promise<void> {
+        this.table = this.dbService.refreshTableReference(this.tableName);
         if (this.table !== undefined) {
             const index = this.table.findIndex(t => (t as { id: number }).id === id);
             if (index !== -1) {

@@ -1,12 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inject, singleton } from "tsyringe";
 import { UserService } from "./user.service.js";
-import {
-    CreateUserBody,
-    DeleteUserParams,
-    GetUserParams,
-    GetUsersParams
-} from "./user.params";
+import { CreateUserBody, DeleteUserParams, GetUserParams, GetUsersParams } from "./user.params";
 import { Controller } from "../controller.js";
 
 @singleton()
@@ -20,10 +15,7 @@ export class UserController implements Controller {
         app.delete("/users/:id", this.deleteUser.bind(this));
     }
 
-    private getUsers(
-        request: FastifyRequest<{ Querystring: GetUsersParams }>,
-        reply: FastifyReply
-    ): void {
+    private getUsers(request: FastifyRequest<{ Querystring: GetUsersParams }>, reply: FastifyReply): void {
         const { ids } = request.query;
         if (ids !== undefined && ids !== null && ids.length > 0) {
             reply.send(this.userService.getUsersByIds(ids));
@@ -37,15 +29,15 @@ export class UserController implements Controller {
         reply.send(user);
     }
 
-    private async createUser(
-        request: FastifyRequest<{ Body: CreateUserBody }>,
-        reply: FastifyReply
-    ): Promise<void> {
+    private async createUser(request: FastifyRequest<{ Body: CreateUserBody }>, reply: FastifyReply): Promise<void> {
         const user = await this.userService.insertUser(request.body.user);
         reply.send(user);
     }
 
-    private async deleteUser(request: FastifyRequest<{ Params: DeleteUserParams }>, reply: FastifyReply): Promise<void> {
+    private async deleteUser(
+        request: FastifyRequest<{ Params: DeleteUserParams }>,
+        reply: FastifyReply
+    ): Promise<void> {
         await this.userService.deleteUser(Number(request.params.id));
         reply.send({ success: true });
     }

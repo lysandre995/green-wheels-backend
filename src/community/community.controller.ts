@@ -11,10 +11,7 @@ export class CommunityController implements Controller {
         app.get("/communities", this.getCommunities.bind(this));
     }
 
-    private getCommunities(
-        _request: FastifyRequest,
-        reply: FastifyReply
-    ): void {
+    private getCommunities(_request: FastifyRequest, reply: FastifyReply): void {
         reply.send(this.communityService.getAllCommunities());
     }
 }

@@ -1,33 +1,34 @@
 {
-  "name": "project",
-  "version": "1.0.0",
-  "description": "Green Wheels Backend",
-  "main": "dist/index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node dist/index.js",
-    "debug": "node src/index.ts",
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "echo test"
-  },
-  "author": "Alessandro Alfano",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^22.5.4",
-    "tsc-alias": "1.8.10",
-    "typescript": "5.5.4"
-  },
-  "dependencies": {
-    "@fastify/cors": "^9.0.1",
-    "bcrypt": "^5.1.1",
-    "fastify": "4.28.1",
-    "green-wheels-core": "1.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "lowdb": "7.0.1",
-    "reflect-metadata": "0.2.2",
-    "tsyringe": "4.8.0"
-  }
+    "name": "project",
+    "version": "1.0.0",
+    "description": "Green Wheels Backend",
+    "main": "dist/index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node dist/index.js",
+        "debug": "ts-node-esm src/index.ts",
+        "build": "tsc",
+        "watch": "tsc -w",
+        "test": "echo test"
+    },
+    "author": "Alessandro Alfano",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/bcrypt": "^5.0.2",
+        "@types/jsonwebtoken": "^9.0.6",
+        "@types/node": "^22.5.4",
+        "tsc-alias": "1.8.10",
+        "typescript": "5.5.4",
+        "ts-node": "10.9.2"
+    },
+    "dependencies": {
+        "@fastify/cors": "^9.0.1",
+        "bcrypt": "^5.1.1",
+        "fastify": "4.28.1",
+        "green-wheels-core": "1.0.0",
+        "jsonwebtoken": "^9.0.2",
+        "lowdb": "7.0.1",
+        "reflect-metadata": "0.2.2",
+        "tsyringe": "4.8.0"
+    }
 }

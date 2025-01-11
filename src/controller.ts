@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
 
 export interface Controller {
-    registerRoutes(instance: FastifyInstance): void
+    registerRoutes(instance: FastifyInstance): void;
 }

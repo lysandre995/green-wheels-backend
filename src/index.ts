@@ -14,6 +14,11 @@ import { AuthenticationController } from "./authentication/authentication.contro
 import { ProfileService } from "./profile/profile.service.js";
 import { ProfileController } from "./profile/profile.controller.js";
 import { ProfileTable } from "./profile/profile.table.js";
+import { RideController } from "./ride/ride.controller.js";
+import { RideService } from "./ride/ride.service.js";
+import { RideTable } from "./ride/ride.table.js";
+import { UserService } from "./user/user.service.js";
+import { CommunityService } from "./community/community.service.js";
 
 const app = fastify();
 
@@ -28,54 +33,68 @@ app.addHook("preHandler", (request, reply, done) => {
         try {
             request.body = JSON.parse(request.body);
         } catch (e) {
-        reply.status(400).send({ error: "Invalid JSON" });
-        return;
+            reply.status(400).send({ error: "Invalid JSON" });
+            return;
         }
     }
 
     done();
 });
 
-type ControllerConstructor<T extends Controller = Controller> = new (
-    ...args: any[]
-  ) => T;
-const controllers: ControllerConstructor[] = [UserController, CommunityController, AuthenticationController, ProfileController];
+type ControllerConstructor<T extends Controller = Controller> = new (...args: any[]) => T;
+const controllers: ControllerConstructor[] = [
+    UserController,
+    CommunityController,
+    AuthenticationController,
+    ProfileController,
+    RideController
+];
 
-type InitializableConstructor<T extends Initializable = Initializable> = new (
-  ...args: any[]
-) => T;
-const initializables: InitializableConstructor[] = [DatabaseService, UserTable, CommunityTable, ProfileTable, AuthenticationService, ProfileService];
+type InitializableConstructor<T extends Initializable = Initializable> = new (...args: any[]) => T;
+const initializables: InitializableConstructor[] = [
+    DatabaseService,
+    UserTable,
+    CommunityTable,
+    ProfileTable,
+    RideTable,
+    AuthenticationService,
+    UserService,
+    CommunityService,
+    ProfileService,
+    RideService
+];
 
 (async () => {
     try {
         await Promise.all(
-            initializables.map((Service) => {
+            initializables.map(Service => {
                 const serviceInstance = container.resolve(Service);
                 return serviceInstance.initialize();
             })
         );
 
         app.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
-            const authHeader = request.headers['authorization'];
+            const authHeader = request.headers["authorization"];
             if (authHeader === undefined) {
                 reply.status(401).send({ error: "No token provided" });
                 return;
             }
 
-            const [scheme, token] = authHeader.split(' ');
+            const [scheme, token] = authHeader.split(" ");
             if (scheme !== "Bearer" || token === undefined || token === null) {
                 reply.status(401).send({ error: "Invalid token format" });
                 return;
             }
 
             try {
-                container.resolve(AuthenticationService).validateToken(token);
+                const decoded = container.resolve(AuthenticationService).validateToken(token);
+                (request as any).user = decoded;
             } catch (e) {
-                reply.status(401).send({error: e, valid: false});
+                reply.status(401).send({ error: e, valid: false });
             }
         });
-        
-        controllers.forEach((Controller) => {
+
+        controllers.forEach(Controller => {
             try {
                 const controllerInstance = container.resolve(Controller);
                 controllerInstance.registerRoutes(app);
