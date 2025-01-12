@@ -36,7 +36,10 @@ export class RideController implements Controller {
         try {
             const userId = (request as any).user.id;
             const communityId = this.userService.getUserById(userId)?.community;
-            reply.code(StatusCodes.OK).code(StatusCodes.OK).send(this.rideService.getAvailableRides(userId, communityId));
+            reply
+                .code(StatusCodes.OK)
+                .code(StatusCodes.OK)
+                .send(this.rideService.getAvailableRides(userId, communityId));
         } catch (e) {
             ErrorHelper.manageError(e, reply);
         }
@@ -57,7 +60,11 @@ export class RideController implements Controller {
             const user = this.userService.getUserById(userId);
             const profile = this.profileService.getProfile(userId);
             if (!profile) {
-                throw new RideCreationProfileNeededError("Ride creation needs a user profile", StatusCodes.UnprocessableEntity, null);
+                throw new RideCreationProfileNeededError(
+                    "Ride creation needs a user profile",
+                    StatusCodes.UnprocessableEntity,
+                    null
+                );
             }
             const ride = request.body.ride;
             ride.driverId = userId;
@@ -77,8 +84,6 @@ export class RideController implements Controller {
         try {
             const rideId = Number(request.params.rideId);
             const userId = Number((request as any).user.id);
-
-            // delete all the associated reservations and notify the customers
 
             await this.rideService.deleteRide(rideId, userId);
             reply.code(StatusCodes.OK).send({ success: true });

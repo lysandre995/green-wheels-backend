@@ -5,6 +5,8 @@ import { AuthenticationService } from "./authentication.service.js";
 import { CreateUserBody } from "../user/user.params";
 import { LoginBody } from "./authentication.params";
 import { ErrorHelper } from "../helper/error.helper.js";
+import { constants } from "../constants.js";
+import { StatusCodes } from "../common/status-codes.enum.js";
 
 @singleton()
 export class AuthenticationController implements Controller {
@@ -27,6 +29,9 @@ export class AuthenticationController implements Controller {
 
     private async login(request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply): Promise<void> {
         try {
+            if (request.body.username === constants.GREEN_WHEELS_USER_NAME) {
+                reply.code(StatusCodes.Forbidden).send();
+            }
             const token = await this.authenticationService.login(request.body.username, request.body.password);
             reply.code(200).send({ token });
         } catch (e) {

@@ -6,7 +6,15 @@ import { UserService } from "../user/user.service.js";
 import { Initializable } from "../common/initializable";
 import { CommunityService } from "../community/community.service.js";
 import { StatusCodes } from "../common/status-codes.enum.js";
-import { CommunityNotFoundError, CommunityVerificationCodeUnmatchNotFoundError, EmailAlreadyPresentError, InvalidPasswordError, InvalidTokenError, NicknameAlreadyPresentError, NickNameDoesntExistError } from "./authentication.errors.js";
+import {
+    CommunityNotFoundError,
+    CommunityVerificationCodeUnmatchNotFoundError,
+    EmailAlreadyPresentError,
+    InvalidPasswordError,
+    InvalidTokenError,
+    NicknameAlreadyPresentError,
+    NickNameDoesntExistError
+} from "./authentication.errors.js";
 
 @singleton()
 export class AuthenticationService implements Initializable {
@@ -27,16 +35,28 @@ export class AuthenticationService implements Initializable {
     public async register(user: UserDto): Promise<void> {
         this.userService.getAllUsers().forEach(u => {
             if (u.username === user.username) {
-                throw new NicknameAlreadyPresentError("The chosen nickname has already been used", StatusCodes.BadRequest, null);
+                throw new NicknameAlreadyPresentError(
+                    "The chosen nickname has already been used",
+                    StatusCodes.BadRequest,
+                    null
+                );
             }
             if (u.email === user.email) {
-                throw new EmailAlreadyPresentError("The chosen email has already been used", StatusCodes.BadRequest, null);
+                throw new EmailAlreadyPresentError(
+                    "The chosen email has already been used",
+                    StatusCodes.BadRequest,
+                    null
+                );
             }
         });
         if (user.community) {
             const community = this.communityService.getCommunityById(Number(user.community));
-            if (!community) {
-                throw new CommunityNotFoundError(`Community id ${user.community} not found`, StatusCodes.NotFound, null);
+            if (community === undefined || community === null) {
+                throw new CommunityNotFoundError(
+                    `Community id ${user.community} not found`,
+                    StatusCodes.NotFound,
+                    null
+                );
             }
             if (community && !(community.verificationCode === user.communityVerificationCode)) {
                 throw new CommunityVerificationCodeUnmatchNotFoundError(

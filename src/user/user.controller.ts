@@ -3,6 +3,7 @@ import { inject, singleton } from "tsyringe";
 import { UserService } from "./user.service.js";
 import { CreateUserBody, DeleteUserParams, GetUserParams, GetUsersParams } from "./user.params";
 import { Controller } from "../controller.js";
+import { StatusCodes } from "../common/status-codes.enum.js";
 
 @singleton()
 export class UserController implements Controller {
@@ -13,6 +14,7 @@ export class UserController implements Controller {
         app.get("/users/:id", this.getUserById.bind(this));
         app.post("/users", this.createUser.bind(this));
         app.delete("/users/:id", this.deleteUser.bind(this));
+        app.get("/user-name", { preHandler: [app.authenticate] }, this.getCurrentUserName.bind(this));
     }
 
     private getUsers(request: FastifyRequest<{ Querystring: GetUsersParams }>, reply: FastifyReply): void {
@@ -40,5 +42,12 @@ export class UserController implements Controller {
     ): Promise<void> {
         await this.userService.deleteUser(Number(request.params.id));
         reply.send({ success: true });
+    }
+
+    private getCurrentUserName(request: FastifyRequest, reply: FastifyReply): void {
+        const userId = (request as any).user.id;
+        const userName = this.userService.getUserById(userId)?.name;
+
+        reply.code(StatusCodes.OK).send({ userName });
     }
 }

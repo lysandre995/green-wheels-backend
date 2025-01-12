@@ -19,6 +19,14 @@ import { RideService } from "./ride/ride.service.js";
 import { RideTable } from "./ride/ride.table.js";
 import { UserService } from "./user/user.service.js";
 import { CommunityService } from "./community/community.service.js";
+import { ReservationController } from "./reservation/reservation.controller.js";
+import { ReservationTable } from "./reservation/reservation.table.js";
+import { ReservationService } from "./reservation/reservation.service.js";
+import { EventManager } from "./event/event.manager.js";
+import { constants } from "./constants.js";
+import { ChatController } from "./chat/chat.controller.js";
+import { ChatService } from "./chat/chat.service.js";
+import { ChatTable } from "./chat/chat.table.js";
 
 const app = fastify();
 
@@ -47,21 +55,28 @@ const controllers: ControllerConstructor[] = [
     CommunityController,
     AuthenticationController,
     ProfileController,
-    RideController
+    RideController,
+    ReservationController,
+    ChatController
 ];
 
 type InitializableConstructor<T extends Initializable = Initializable> = new (...args: any[]) => T;
 const initializables: InitializableConstructor[] = [
+    EventManager,
     DatabaseService,
     UserTable,
     CommunityTable,
     ProfileTable,
     RideTable,
+    ReservationTable,
+    ChatTable,
     AuthenticationService,
     UserService,
     CommunityService,
     ProfileService,
-    RideService
+    RideService,
+    ReservationService,
+    ChatService
 ];
 
 (async () => {
@@ -72,6 +87,17 @@ const initializables: InitializableConstructor[] = [
                 return serviceInstance.initialize();
             })
         );
+
+        const userTable = container.resolve(UserTable);
+        if (userTable.findAll().length === 0) {
+            userTable.insert({
+                name: constants.GREEN_WHEELS_USER_NAME,
+                email: "",
+                username: constants.GREEN_WHEELS_USER_NAME,
+                password: "",
+                telephone: ""
+            });
+        }
 
         app.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
             const authHeader = request.headers["authorization"];

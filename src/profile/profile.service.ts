@@ -4,10 +4,15 @@ import { ProfileTable } from "./profile.table.js";
 import { UndefinedIdError } from "./undefined-id.error.js";
 import { UserIdNotPresentError } from "./user-id-not-present.error.js";
 import { Initializable } from "../common/initializable.js";
+import { EventKeys } from "../event/event-keys.enum.js";
+import { EventManager } from "../event/event.manager.js";
 
 @singleton()
 export class ProfileService implements Initializable {
-    public constructor(@inject(ProfileTable) private readonly profileTable: ProfileTable) {}
+    public constructor(
+        @inject(ProfileTable) private readonly profileTable: ProfileTable,
+        @inject(EventManager) private readonly eventManager: EventManager
+    ) {}
 
     public async initialize(): Promise<void> {
         return;
@@ -35,9 +40,10 @@ export class ProfileService implements Initializable {
         throw new UndefinedIdError("A profile must have an id defined");
     }
 
-    public async deleteProfile(id: number): Promise<void> {
+    public async deleteProfile(id: number, userId: number): Promise<void> {
         if (id !== undefined) {
             await this.profileTable.delete(id);
+            this.eventManager.emit(EventKeys.ProfileElimination, { userId });
         }
         throw new UndefinedIdError("A profile must have an id defined");
     }

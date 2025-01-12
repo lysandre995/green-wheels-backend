@@ -3,13 +3,31 @@ import { Initializable } from "../common/initializable.js";
 import { ReservationTable } from "./reservation.table.js";
 import ReservationDto from "green-wheels-core/src/reservation/reservation.dto.js";
 import { StatusCodes } from "../common/status-codes.enum.js";
-import { AcceptReservationError, CreateReservationsError, DeleteReservationError, GetReservationsError, ReservationIdUndefinedError, ReservationOperationUnathorizedError } from "./reservation.errors.js";
+import {
+    AcceptReservationError,
+    CreateReservationsError,
+    DeleteReservationError,
+    GetReservationsError,
+    ReservationAlreadyAcceptedError,
+    ReservationIdUndefinedError,
+    ReservationOperationUnathorizedError
+} from "./reservation.errors.js";
+import { EventManager } from "../event/event.manager.js";
+import { EventKeys } from "../event/event-keys.enum.js";
+import ReservationNotificationData from "green-wheels-core/src/reservation/reservation-notification.data.js";
 
 @singleton()
 export class ReservationService implements Initializable {
-    public constructor(@inject(ReservationTable) private readonly reservationTable: ReservationTable) {}
+    public constructor(
+        @inject(ReservationTable) private readonly reservationTable: ReservationTable,
+        @inject(EventManager) private readonly eventManager: EventManager
+    ) {}
 
     public async initialize(): Promise<void> {
+        this.eventManager.on(
+            EventKeys.RideElimination,
+            async e => await this.cascadeDeleteReservations((e as any)?.detail?.rideId)
+        );
         return;
     }
 
@@ -33,37 +51,90 @@ export class ReservationService implements Initializable {
         try {
             return this.reservationTable.findById(reservationId);
         } catch (e) {
-            throw new CreateReservationsError(`Error finding reservation with id ${reservationId}`, StatusCodes.NotFound, e);
+            throw new CreateReservationsError(
+                `Error finding reservation with id ${reservationId}`,
+                StatusCodes.NotFound,
+                e
+            );
         }
     }
 
-    public async acceptReservation(offeredRideIds: number[], reservation: ReservationDto): Promise<void> {
+    public async acceptReservation(offeredRideIds: number[], reservation: ReservationDto, reservationNotificationData: ReservationNotificationData): Promise<void> {
         try {
-            if (!reservation.id) {
-                throw new ReservationIdUndefinedError("Reservation id is undefined", StatusCodes.InternalServerError, null);
+            const reservationId = reservation.id;
+            if (reservationId === undefined || reservationId === null) {
+                throw new ReservationIdUndefinedError(
+                    "Reservation id is undefined",
+                    StatusCodes.InternalServerError,
+                    null
+                );
             }
-            if (!offeredRideIds.includes(reservation.id)) {
-                throw new ReservationOperationUnathorizedError(`Authenticated user has no right on reservation ${reservation.id}`, StatusCodes.Forbidden, null);
+            if (!offeredRideIds.includes(reservation.rideId)) {
+                throw new ReservationOperationUnathorizedError(
+                    `Authenticated user has no right on reservation ${reservationId}`,
+                    StatusCodes.Forbidden,
+                    null
+                );
+            }
+            if (reservation.accepted) {
+                throw new ReservationAlreadyAcceptedError(
+                    `Reservation with id ${reservationId} is already accepted`,
+                    StatusCodes.BadRequest,
+                    null
+                );
             }
 
-            await this.reservationTable.update(reservation.id, reservation);
+            reservation.accepted = true;
+            await this.reservationTable.update(reservationId, reservation);
+            this.eventManager.emit(EventKeys.ReservationAcceptation, reservationNotificationData);
         } catch (e) {
-            throw new AcceptReservationError(`Error accepting reservation with id ${reservation.id}`, StatusCodes.InternalServerError, e);
+            throw new AcceptReservationError(
+                `Error accepting reservation with id ${reservation.id}`,
+                StatusCodes.InternalServerError,
+                e
+            );
         }
     }
 
     public async deleteReservation(offeredRideIds: number[], reservation: ReservationDto) {
         try {
-            if (!reservation.id) {
-                throw new ReservationIdUndefinedError("Reservation id is undefined", StatusCodes.InternalServerError, null);
+            const reservationId = reservation.id;
+            if (reservationId === undefined || reservationId === null) {
+                throw new ReservationIdUndefinedError(
+                    "Reservation id is undefined",
+                    StatusCodes.InternalServerError,
+                    null
+                );
             }
-            if (!offeredRideIds.includes(reservation.id)) {
-                throw new ReservationOperationUnathorizedError(`Authenticated user has no right on reservation ${reservation.id}`, StatusCodes.Forbidden, null);
+            if (!offeredRideIds.includes(reservation.rideId)) {
+                throw new ReservationOperationUnathorizedError(
+                    `Authenticated user has no right on reservation ${reservationId}`,
+                    StatusCodes.Forbidden,
+                    null
+                );
             }
 
-            await this.reservationTable.delete(reservation.id);
+            await this.reservationTable.delete(reservationId);
+            this.eventManager.emit(EventKeys.ReservationElimination, { reservationId });
         } catch (e) {
-            throw new DeleteReservationError(`Error removing reservation with id ${reservation.id}`, StatusCodes.InternalServerError, e);
+            throw new DeleteReservationError(
+                `Error removing reservation with id ${reservation.id}`,
+                StatusCodes.InternalServerError,
+                e
+            );
+        }
+    }
+
+    private async cascadeDeleteReservations(rideId: number) {
+        try {
+            await Promise.all(
+                this.reservationTable
+                    .findAll()
+                    .filter(r => r.rideId === rideId)
+                    .map(r => this.reservationTable.delete(r.id as number))
+            );
+        } catch (e) {
+            console.error(e);
         }
     }
 }

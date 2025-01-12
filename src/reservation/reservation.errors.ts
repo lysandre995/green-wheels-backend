@@ -7,3 +7,5 @@ export class ReservationIdUndefinedError extends CustomError {}
 export class ReservationOperationUnathorizedError extends CustomError {}
 export class AcceptReservationError extends CustomError {}
 export class DeleteReservationError extends CustomError {}
+export class ReservationAlreadyExistsError extends CustomError {}
+export class ReservationAlreadyAcceptedError extends CustomError {}

@@ -74,7 +74,7 @@ export class DatabaseService implements Initializable {
 
     public refreshTableReference<T>(tableName: string): T[] {
         try {
-            return this.db.data[tableName] as T[]
+            return this.db.data[tableName] as T[];
         } catch (e) {
             throw e;
         }

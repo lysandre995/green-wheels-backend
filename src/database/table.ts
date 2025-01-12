@@ -73,6 +73,7 @@ export abstract class Table<T> implements Initializable {
     }
 
     public async delete(id: number): Promise<void> {
+        this.table = this.dbService.refreshTableReference(this.tableName);
         if (this.table !== undefined) {
             const elementToDelete = this.table.find(t => (t as { id: number }).id === id);
             if (elementToDelete !== undefined) {

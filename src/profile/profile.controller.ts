@@ -57,18 +57,14 @@ export class ProfileController implements Controller {
             const userId = (request as any).user.id;
             const newProfile = request.body.profile;
             const oldProfile = this.profileService.getProfile(userId);
-            if (
-                !newProfile.id ||
-                newProfile.id !== oldProfile?.id ||
-                userId !== newProfile.userId ||
-                userId !== oldProfile?.userId
-            ) {
+            if (userId !== oldProfile?.userId) {
                 throw new ProfileOperationUnathorized(
                     `User ${userId} cannot operate on profile ${newProfile.id}`,
                     StatusCodes.Forbidden,
                     null
                 );
             }
+            newProfile.id = oldProfile?.id;
             this.profileService.updateProfile(newProfile);
             reply.code(StatusCodes.Accepted).send("Profile updated");
         } catch (e) {
@@ -88,10 +84,7 @@ export class ProfileController implements Controller {
                     null
                 );
             }
-            await this.profileService.deleteProfile(profileId);
-
-            // if the profile is deleted also the rides must be removed
-
+            await this.profileService.deleteProfile(profileId, userId);
             reply.code(StatusCodes.OK).send("Profile deleted");
         } catch (e) {
             ErrorHelper.manageError(e, reply);
