@@ -49,14 +49,23 @@ export class ChatService implements Initializable {
         lat: number;
     }): Promise<void> {
         try {
+            const date = new Date();
+            const formattedDate = new Intl.DateTimeFormat('it-IT', {
+                year: '2-digit',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }).format(date);
             const message = {
                 from: constants.GREEN_WHEELS_USER_ID,
                 to: detail.userId,
                 message:
                     `Your reservation for ride from ${detail.startLocation} to ${detail.endLocation} in date ${detail.date} at ${detail.time} has been accepted!` +
-                    `\nContact ${detail.driverUsername} for further details!` +
-                    `\n\nStart Coords: (${detail.lng},${detail.lat})`,
-                dateTime: new Date().toString()
+                    `<br><br>Contact ${detail.driverUsername} for further details!` +
+                    `<br><br>Start Coords: (${detail.lng},${detail.lat})`,
+                dateTime: formattedDate
             };
             this.writeMessage(message);
         } catch (e) {

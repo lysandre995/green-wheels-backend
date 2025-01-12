@@ -24,7 +24,7 @@ export class ChatController implements Controller {
     private getMessages(req: FastifyRequest, rep: FastifyReply) {
         try {
             const userId = (req as any).user.id;
-            const rawMessages = this.chatService.getMesseges(userId);
+            const rawMessages = JSON.parse(JSON.stringify(this.chatService.getMesseges(userId))) as MessageDto[];
             const processedMessages = rawMessages.map(rm => {
                 const from = this.userService.getUserById(rm.from);
                 const to = this.userService.getUserById(rm.to);
