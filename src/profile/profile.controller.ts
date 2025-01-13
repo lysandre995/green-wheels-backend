@@ -23,39 +23,39 @@ export class ProfileController implements Controller {
         app.delete("/profile", { preHandler: [app.authenticate] }, this.deleteProfile.bind(this));
     }
 
-    private getProfile(request: FastifyRequest, reply: FastifyReply): void {
+    private getProfile(req: FastifyRequest, rep: FastifyReply): void {
         try {
-            const userId = Number((request as any).user.id);
+            const userId = Number((req as any).user.id);
             const profile = this.profileService.getProfile(userId);
-            reply.code(StatusCodes.OK).send(profile);
+            rep.code(StatusCodes.OK).send(profile);
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
     private async addProfile(
-        request: FastifyRequest<{ Body: { profile: ProfileDto } }>,
-        reply: FastifyReply
+        req: FastifyRequest<{ Body: { profile: ProfileDto } }>,
+        rep: FastifyReply
     ): Promise<void> {
         try {
-            const userId = (request as any).user.id;
-            const profile = request.body.profile;
+            const userId = (req as any).user.id;
+            const profile = req.body.profile;
             profile.userId = userId;
             const alreadyExists = !!this.profileService.getProfile(userId);
             if (alreadyExists) {
                 throw new UserIdAlreadyPresentError("Profile with this id already exists");
             }
             const profileId = await this.profileService.addProfile(profile);
-            reply.code(StatusCodes.OK).send({ profileId });
+            rep.code(StatusCodes.OK).send({ profileId });
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
-    private updateProfile(request: FastifyRequest<{ Body: { profile: ProfileDto } }>, reply: FastifyReply): void {
+    private updateProfile(req: FastifyRequest<{ Body: { profile: ProfileDto } }>, rep: FastifyReply): void {
         try {
-            const userId = (request as any).user.id;
-            const newProfile = request.body.profile;
+            const userId = (req as any).user.id;
+            const newProfile = req.body.profile;
             const oldProfile = this.profileService.getProfile(userId);
             if (userId !== oldProfile?.userId) {
                 throw new ProfileOperationUnathorized(
@@ -66,15 +66,15 @@ export class ProfileController implements Controller {
             }
             newProfile.id = oldProfile?.id;
             this.profileService.updateProfile(newProfile);
-            reply.code(StatusCodes.Accepted).send("Profile updated");
+            rep.code(StatusCodes.Accepted).send("Profile updated");
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
-    private async deleteProfile(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    private async deleteProfile(req: FastifyRequest, rep: FastifyReply): Promise<void> {
         try {
-            const userId = (request as any).user.id;
+            const userId = (req as any).user.id;
             const profile = this.profileService.getProfile(userId);
             const profileId = profile?.id as number;
             if (!profile || userId !== profile.userId) {
@@ -85,9 +85,9 @@ export class ProfileController implements Controller {
                 );
             }
             await this.profileService.deleteProfile(profileId, userId);
-            reply.code(StatusCodes.OK).send("Profile deleted");
+            rep.code(StatusCodes.OK).send("Profile deleted");
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 }

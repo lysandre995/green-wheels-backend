@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { injectable, inject } from "tsyringe";
 import { CommunityService } from "./community.service.js";
 import { Controller } from "../controller.js";
+import { ErrorHelper } from "../helper/error.helper.js";
 
 @injectable()
 export class CommunityController implements Controller {
@@ -11,7 +12,11 @@ export class CommunityController implements Controller {
         app.get("/communities", this.getCommunities.bind(this));
     }
 
-    private getCommunities(_request: FastifyRequest, reply: FastifyReply): void {
-        reply.send(this.communityService.getAllCommunities());
+    private getCommunities(_req: FastifyRequest, rep: FastifyReply): void {
+        try {
+            rep.send(this.communityService.getAllCommunities());
+        } catch (e) {
+            ErrorHelper.manageError(e, rep);
+        }
     }
 }

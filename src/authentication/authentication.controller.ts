@@ -18,32 +18,32 @@ export class AuthenticationController implements Controller {
         app.post("/validate", this.validateToken.bind(this));
     }
 
-    private async register(request: FastifyRequest<{ Body: CreateUserBody }>, reply: FastifyReply): Promise<void> {
+    private async register(req: FastifyRequest<{ Body: CreateUserBody }>, rep: FastifyReply): Promise<void> {
         try {
-            await this.authenticationService.register(request.body.user);
-            reply.code(200).send("Registration success");
+            await this.authenticationService.register(req.body.user);
+            rep.code(200).send("Registration success");
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
-    private async login(request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply): Promise<void> {
+    private async login(req: FastifyRequest<{ Body: LoginBody }>, rep: FastifyReply): Promise<void> {
         try {
-            if (request.body.username === constants.GREEN_WHEELS_USER_NAME) {
-                reply.code(StatusCodes.Forbidden).send();
+            if (req.body.username === constants.GREEN_WHEELS_USER_NAME) {
+                rep.code(StatusCodes.Forbidden).send();
             }
-            const token = await this.authenticationService.login(request.body.username, request.body.password);
-            reply.code(200).send({ token });
+            const token = await this.authenticationService.login(req.body.username, req.body.password);
+            rep.code(200).send({ token });
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
-    private validateToken(request: FastifyRequest<{ Body: { token: string } }>, reply: FastifyReply): void {
+    private validateToken(req: FastifyRequest<{ Body: { token: string } }>, rep: FastifyReply): void {
         try {
-            reply.code(200).send(this.authenticationService.validateToken(request.body.token));
+            rep.code(200).send(this.authenticationService.validateToken(req.body.token));
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 }

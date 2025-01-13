@@ -32,31 +32,31 @@ export class RideController implements Controller {
         );
     }
 
-    private getAvailableRides(request: FastifyRequest, reply: FastifyReply): void {
+    private getAvailableRides(req: FastifyRequest, rep: FastifyReply): void {
         try {
-            const userId = (request as any).user.id;
+            const userId = (req as any).user.id;
             const communityId = this.userService.getUserById(userId)?.community;
-            reply
+            rep
                 .code(StatusCodes.OK)
                 .code(StatusCodes.OK)
                 .send(this.rideService.getAvailableRides(userId, communityId));
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
-    private getOfferedRides(request: FastifyRequest, reply: FastifyReply): void {
+    private getOfferedRides(req: FastifyRequest, rep: FastifyReply): void {
         try {
-            const userId = (request as any).user.id;
-            reply.code(StatusCodes.OK).send(this.rideService.getOfferedRides(userId));
+            const userId = (req as any).user.id;
+            rep.code(StatusCodes.OK).send(this.rideService.getOfferedRides(userId));
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
-    private async createRide(request: FastifyRequest<{ Body: { ride: RideDto } }>, reply: FastifyReply): Promise<void> {
+    private async createRide(req: FastifyRequest<{ Body: { ride: RideDto } }>, rep: FastifyReply): Promise<void> {
         try {
-            const userId = (request as any).user.id;
+            const userId = (req as any).user.id;
             const user = this.userService.getUserById(userId);
             const profile = this.profileService.getProfile(userId);
             if (!profile) {
@@ -66,29 +66,29 @@ export class RideController implements Controller {
                     null
                 );
             }
-            const ride = request.body.ride;
+            const ride = req.body.ride;
             ride.driverId = userId;
             ride.communityId = user?.community;
 
-            const rideId = await this.rideService.insertRide(request.body.ride);
-            reply.code(StatusCodes.Created).send(rideId);
+            const rideId = await this.rideService.insertRide(req.body.ride);
+            rep.code(StatusCodes.Created).send(rideId);
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 
     private async deleteRide(
-        request: FastifyRequest<{ Params: { rideId: number } }>,
-        reply: FastifyReply
+        req: FastifyRequest<{ Params: { rideId: number } }>,
+        rep: FastifyReply
     ): Promise<void> {
         try {
-            const rideId = Number(request.params.rideId);
-            const userId = Number((request as any).user.id);
+            const rideId = Number(req.params.rideId);
+            const userId = Number((req as any).user.id);
 
             await this.rideService.deleteRide(rideId, userId);
-            reply.code(StatusCodes.OK).send({ success: true });
+            rep.code(StatusCodes.OK).send({ success: true });
         } catch (e) {
-            ErrorHelper.manageError(e, reply);
+            ErrorHelper.manageError(e, rep);
         }
     }
 }

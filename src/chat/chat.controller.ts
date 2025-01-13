@@ -6,6 +6,7 @@ import { ErrorHelper } from "../helper/error.helper.js";
 import { ChatService } from "./chat.service.js";
 import MessageDto from "green-wheels-core/src/message/message.dto.js";
 import { UserService } from "../user/user.service.js";
+import { NoReplyReceiverError, SelfSentMessageError } from "./chat.errors.js";
 
 @singleton()
 export class ChatController implements Controller {
@@ -29,7 +30,7 @@ export class ChatController implements Controller {
                 const from = this.userService.getUserById(rm.from);
                 const to = this.userService.getUserById(rm.to);
                 (rm as any).from = { id: rm.from, username: from?.username };
-                (rm as any).to = { id: rm.to, username: to?.username }
+                (rm as any).to = { id: rm.to, username: to?.username };
                 return rm;
             });
             rep.code(StatusCodes.OK).send(processedMessages);
@@ -43,6 +44,20 @@ export class ChatController implements Controller {
             const userId = (req as any).user.id;
             const message = req.body.message;
             message.from = userId;
+            message.dateTime = new Intl.DateTimeFormat('it-IT', {
+                year: '2-digit',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }).format(new Date(message.dateTime));
+            if (userId === message.to) {
+                throw new SelfSentMessageError("Sender and receiver are the same!", StatusCodes.BadRequest, null);
+            }
+            if (message.to === 0) {
+                throw new NoReplyReceiverError("Receiver is no reply", StatusCodes.BadRequest, null);
+            }
             rep.code(StatusCodes.OK).send(await this.chatService.writeMessage(message));
         } catch (e) {
             ErrorHelper.manageError(e, rep);

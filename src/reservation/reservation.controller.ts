@@ -85,17 +85,17 @@ export class ReservationController implements Controller {
             ) as ReservationDto;
 
             // TODO: prevent overbooking
-            const userId = (req as any).user.id;
             const ride = this.ridesService.getRideById(reservation.rideId) as RideDto;
-            const user = this.userService.getUserById(userId) as UserDto;
+            const driver = this.userService.getUserById(ride.driverId) as UserDto;
+            const passenger = this.userService.getUserById(reservation.userId)
             const date = new Date(ride.dateTime);
             const reservationNotificationData: ReservationNotificationData = {
-                userId: userId,
+                userId: passenger?.id as number,
                 startLocation: ride.start.municipality,
                 endLocation: ride.end.municipality,
                 date: `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear().toString().padStart(4, "0")}`,
                 time: `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`,
-                driverUsername: user.username,
+                driverUsername: driver.username,
                 lng: ride.start.lng,
                 lat: ride.start.lat
             };
