@@ -27,6 +27,9 @@ import { constants } from "./constants.js";
 import { ChatController } from "./chat/chat.controller.js";
 import { ChatService } from "./chat/chat.service.js";
 import { ChatTable } from "./chat/chat.table.js";
+import { EvaluationController } from "./evaluation/evaluation.controller.js";
+import { EvaluationTable } from "./evaluation/evaluation.table.js";
+import { EvaluationService } from "./evaluation/evaluation.service.js";
 
 const app = fastify();
 
@@ -57,7 +60,8 @@ const controllers: ControllerConstructor[] = [
     ProfileController,
     RideController,
     ReservationController,
-    ChatController
+    ChatController,
+    EvaluationController
 ];
 
 type InitializableConstructor<T extends Initializable = Initializable> = new (...args: any[]) => T;
@@ -70,13 +74,15 @@ const initializables: InitializableConstructor[] = [
     RideTable,
     ReservationTable,
     ChatTable,
+    EvaluationTable,
     AuthenticationService,
     UserService,
     CommunityService,
     ProfileService,
     RideService,
     ReservationService,
-    ChatService
+    ChatService,
+    EvaluationService
 ];
 
 (async () => {

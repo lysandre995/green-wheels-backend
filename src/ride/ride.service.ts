@@ -3,9 +3,15 @@ import { RideTable } from "./ride.table.js";
 import { Initializable } from "../common/initializable.js";
 import { StatusCodes } from "../common/status-codes.enum.js";
 import RideDto from "green-wheels-core/src/ride/ride.dto";
-import { RideNotFoundError, UserInvalidRideOperationError } from "./ride.errors.js";
+import {
+    RideNotFoundError,
+    UpdateRideError,
+    UserInvalidRideOperationError
+} from "./ride.errors.js";
 import { EventManager } from "../event/event.manager.js";
 import { EventKeys } from "../event/event-keys.enum.js";
+import { randomUUID } from "crypto";
+import { RideState } from "./ride.state.enum.js";
 
 @singleton()
 export class RideService implements Initializable {
@@ -54,7 +60,7 @@ export class RideService implements Initializable {
         throw new RideNotFoundError(`Ride with id: ${rideId} not found`, StatusCodes.NotFound, null);
     }
 
-    private async cascadeDeleteRides(userId: number) {
+    private async cascadeDeleteRides(userId: number): Promise<void> {
         try {
             await Promise.all(
                 this.rideTable
@@ -73,6 +79,28 @@ export class RideService implements Initializable {
             return this.rideTable.findById(rideId);
         } catch (e) {
             throw new RideNotFoundError(`Ride with id: ${rideId} not found`, StatusCodes.NotFound, e);
+        }
+    }
+
+    public async updateRide(
+        ride: RideDto,
+        concludedRideDetails?: {
+            driverId: number;
+            driverUsername: string;
+            startLocation: string;
+            endLocation: string;
+            passengers: number[];
+        }
+    ): Promise<void> {
+        try {
+            if (ride.state === RideState.Concluded) {
+                const token = randomUUID();
+                (concludedRideDetails as any).token = token;
+                this.eventManager.emit(EventKeys.RideConcluded, concludedRideDetails);
+            }
+            return await this.rideTable.update(ride.id as number, ride);
+        } catch (e) {
+            throw new UpdateRideError(`Error starting ride with id: ${ride.id}`, StatusCodes.InternalServerError, e);
         }
     }
 }
