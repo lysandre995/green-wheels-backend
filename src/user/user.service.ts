@@ -66,14 +66,14 @@ export class UserService implements Initializable {
             if (user === undefined || user === null) {
                 throw new CustomError("Error evaluating user", StatusCodes.InternalServerError, null);
             }
-            user.numberOfEvaluations =
-                user.numberOfEvaluations !== undefined && user.numberOfEvaluations !== null ?
-                    user.numberOfEvaluations++
-                :   1;
-            user.averageRate =
-                user.averageRate !== undefined && user.averageRate !== null ?
-                    (user.averageRate + detail.rating) / user.numberOfEvaluations
-                :   user.averageRate;
+            if (user.numberOfEvaluations === undefined || user.numberOfEvaluations === null) {
+                user.numberOfEvaluations = 0;
+            }
+            user.numberOfEvaluations++;
+            if (user.averageRate === undefined || user.averageRate === null) {
+                user.averageRate = 0;
+            }
+            user.averageRate = ((user.averageRate * (user.numberOfEvaluations - 1)) + detail.rating) / user.numberOfEvaluations;
 
             await this.userTable.update(detail.userId, user);
         } catch (e) {

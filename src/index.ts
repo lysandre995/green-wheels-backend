@@ -135,7 +135,7 @@ const initializables: InitializableConstructor[] = [
             }
         });
 
-        const address = await app.listen({ port: 3000 });
+        const address = await app.listen({ port: 3000, host: "0.0.0.0" });
         console.log(`Server listening at ${address}`);
     } catch (e) {
         console.error("Error during server startup", e);

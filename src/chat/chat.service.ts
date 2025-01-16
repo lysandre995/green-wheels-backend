@@ -62,10 +62,13 @@ export class ChatService implements Initializable {
             const message = {
                 from: constants.GREEN_WHEELS_USER_ID,
                 to: detail.userId,
-                message:
-                    `Your reservation for ride from ${detail.startLocation} to ${detail.endLocation} in date ${detail.date} at ${detail.time} has been accepted!` +
-                    `<br><br>Contact ${detail.driverUsername} for further details!` +
-                    `<br><br>Start Coords: (${detail.lng},${detail.lat})`,
+                message: `
+                    <div class="message-container p-3">
+                        <p>Your reservation for ride from <strong>${detail.startLocation}</strong> to <strong>${detail.endLocation}</strong> on <strong>${detail.date}</strong> at <strong>${detail.time}</strong> has been accepted!</p>
+                        <p>Contact <strong>${detail.driverUsername}</strong> for further details!</p>
+                        <p><strong>Start Coords:</strong> (${detail.lng},${detail.lat})</p>
+                    </div>
+                `,
                 dateTime: formattedDate
             };
             await this.writeMessage(message);
@@ -99,17 +102,32 @@ export class ChatService implements Initializable {
                         from: constants.GREEN_WHEELS_USER_ID,
                         to: passsengerId,
                         message: `
-                        <h1>Rate Your Driver</h1>
-                        <p>Please rate your experience for the trip from <strong>${concludedRideDetails.startLocation}</strong> to <strong>${concludedRideDetails.endLocation}</strong> with driver <strong>${concludedRideDetails.driverUsername}</strong>.</p>
-                        <form class="ratingForm" token="${concludedRideDetails.token}">
-                            <label for="${concludedRideDetails.token}">Your Rating (1 to 5):</label>
-                            <input class="form-control me-2 rating" type="number" id="${concludedRideDetails.token}" name="rating" min="1" max="5" required>
-                            <button class="btn btn-primary" type="submit">Submit Rating</button>
-                        </form>`,
-                        dateTime: formattedDate
-                    });
+                            <div class="message-container p-3">
+                                <h5 class="mb-3">Rate Your Driver</h5>
+                                <p>Please rate your experience for the trip from <strong>${concludedRideDetails.startLocation}</strong> to <strong>${concludedRideDetails.endLocation}</strong> with driver <strong>${concludedRideDetails.driverUsername}</strong>.</p>
+                                <form class="ratingForm" token="${concludedRideDetails.token}">
+                                    <label for="${concludedRideDetails.token}">Your Rating (1 to 5):</label>
+                                    <input class="form-control me-2 rating" type="number" id="${concludedRideDetails.token}" name="rating" min="1" max="5" required>
+                                    <button class="btn btn-primary rate-button mt-2">Submit Rating</button>
+                                </form>
+                            </div>
+                        `,
+                        dateTime: formattedDate,
+                        token: concludedRideDetails.token
+                    } as any);
                 })
             );
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    public async deleteMessage(token: string) {
+        try {
+            const message = this.chatTable.findAll().find(m => (m as any).token === token);
+            if (message !== undefined && message !== null) {
+                await this.chatTable.delete(message.id as number);
+            }
         } catch (e) {
             console.error(e);
         }

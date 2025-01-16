@@ -66,6 +66,8 @@ export class AuthenticationService implements Initializable {
                 );
             }
         }
+        user.averageRate = 0;
+        user.numberOfEvaluations = 0;
         user.password = await bcrypt.hash(user.password, AuthenticationService.SALT_ROUNDS);
         await this.userService.insertUser(user);
     }

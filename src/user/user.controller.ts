@@ -5,10 +5,17 @@ import { CreateUserBody, DeleteUserParams, GetUserParams, GetUsersParams } from 
 import { Controller } from "../controller.js";
 import { StatusCodes } from "../common/status-codes.enum.js";
 import { ErrorHelper } from "../helper/error.helper.js";
+import { ProfileService } from "../profile/profile.service.js";
+import { CustomError } from "../common/custom.error.js";
+import { ReservationService } from "../reservation/reservation.service.js";
 
 @singleton()
 export class UserController implements Controller {
-    public constructor(@inject(UserService) private readonly userService: UserService) {}
+    public constructor(
+        @inject(UserService) private readonly userService: UserService,
+        @inject(ProfileService) private readonly profileService: ProfileService,
+        @inject(ReservationService) private readonly reservationService: ReservationService
+    ) {}
 
     public registerRoutes(app: FastifyInstance): void {
         // app.get("/users", this.getUsers.bind(this));
@@ -18,6 +25,9 @@ export class UserController implements Controller {
         app.get("/user-name", { preHandler: [app.authenticate] }, this.getCurrentUserName.bind(this));
         app.get("/user-id/:username", { preHandler: [app.authenticate] }, (res, rep) =>
             this.getUserIdByUsername(res as FastifyRequest<{ Params: { username: string } }>, rep)
+        );
+        app.get("/user-info/:userId/:rideId", { preHandler: [app.authenticate] }, (res, rep) =>
+            this.getUserInfo(res as FastifyRequest<{ Params: { userId: number; rideId: number } }>, rep)
         );
     }
 
@@ -44,10 +54,7 @@ export class UserController implements Controller {
     }
 
     // only internal use
-    private async deleteUser(
-        req: FastifyRequest<{ Params: DeleteUserParams }>,
-        rep: FastifyReply
-    ): Promise<void> {
+    private async deleteUser(req: FastifyRequest<{ Params: DeleteUserParams }>, rep: FastifyReply): Promise<void> {
         await this.userService.deleteUser(Number(req.params.id));
         rep.send({ success: true });
     }
@@ -74,6 +81,34 @@ export class UserController implements Controller {
                 rep.code(StatusCodes.OK).send({ userId });
             }
             rep.code(StatusCodes.OK).send({ userId: (req as any).user.id });
+        } catch (e) {
+            ErrorHelper.manageError(e, rep);
+        }
+    }
+
+    private getUserInfo(req: FastifyRequest<{ Params: { userId: number; rideId: number } }>, rep: FastifyReply) {
+        try {
+            const userId = Number(req.params.userId);
+            const rideId = Number(req.params.rideId);
+            const user = this.userService.getUserById(userId);
+            const profile = this.profileService.getProfile(userId);
+            const reservations = this.reservationService.getReservations([rideId]);
+
+            if (user === undefined || user === null || profile === undefined || profile === null) {
+                throw new CustomError(
+                    "Error getting user and profile information",
+                    StatusCodes.InternalServerError,
+                    null
+                );
+            }
+            const profileCopy = JSON.parse(JSON.stringify(profile));
+            profileCopy.availableSeats = Math.max(0, Number(profileCopy.availableSeats) - reservations.filter(r => r.accepted).length);
+            return {
+                username: user.username,
+                averageRate: user.averageRate,
+                numberOfEvaluations: user.numberOfEvaluations,
+                ...profileCopy
+            };
         } catch (e) {
             ErrorHelper.manageError(e, rep);
         }
